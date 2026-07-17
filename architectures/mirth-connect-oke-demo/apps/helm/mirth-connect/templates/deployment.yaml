@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mirth-connect.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "mirth-connect.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "mirth-connect.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "mirth-connect.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      containers:
+        - name: mirth-connect
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          {{- if .Values.command }}
+          command:
+{{ toYaml .Values.command | indent 12 }}
+          {{- end }}
+
+          {{- if .Values.args }}
+          args:
+{{ toYaml .Values.args | indent 12 }}
+          {{- end }}
+
+          envFrom:
+            - secretRef:
+                name: mirth-connect-env
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetHttpPort }}
+              protocol: TCP
+            - name: https
+              containerPort: {{ .Values.service.targetHttpsPort }}
+              protocol: TCP
+
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: appdata
+              mountPath: {{ .Values.persistence.mountPath }}
+          {{- end }}
+
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: appdata
+          persistentVolumeClaim:
+            claimName: {{ include "mirth-connect.fullname" . }}-appdata
+      {{- end }}

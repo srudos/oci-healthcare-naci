@@ -1,0 +1,34 @@
+replicaCount: 1
+
+image:
+  repository: docker.io/nextgenhealthcare/connect
+  tag: "4.5.2"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+# - name: my-regcred
+
+service:
+  type: LoadBalancer
+  httpPort: 8080
+  httpsPort: 8443
+  targetHttpPort: 8080
+  targetHttpsPort: 8443
+  annotations:
+    oci.oraclecloud.com/load-balancer-type: "lb"
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  storageClassName: ""
+  mountPath: /opt/connect/appdata
+
+command: []
+args: []
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

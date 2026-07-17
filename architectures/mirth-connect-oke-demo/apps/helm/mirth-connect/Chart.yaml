@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mirth-connect
+description: Mirth Connect deployment for OKE with public OCI Load Balancer and persistent appdata
+type: application
+version: 0.1.0
+appVersion: "4.5.2"
